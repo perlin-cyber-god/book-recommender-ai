@@ -5,16 +5,10 @@ from PyPDF2 import PdfReader
 from rich.console import Console
 from nltk.tokenize import sent_tokenize
 
-# -----------------------------
-# Initialize console
-# -----------------------------
 console = Console()
 
-# -----------------------------
-# Paths
-# -----------------------------
 books_folder = "/home/perli/Documents/book_recommender/books"
-cache_file = os.path.join(books_folder, "book_vectors.npy")  # cache stored with books
+cache_file = os.path.join(books_folder, "book_vectors.npy")  # cache stored with the books
 book_texts = {}
 
 # -----------------------------
@@ -99,12 +93,38 @@ other_recos = sorted_books[1:5]
 # -----------------------------
 # Count keyword occurrences & generate summary
 # -----------------------------
-def analyze_book(text, keywords, max_sentences=5):
-    counts = {k: text.lower().count(k) for k in keywords}
+from nltk.tokenize import sent_tokenize
+
+from nltk.tokenize import sent_tokenize
+
+def analyze_book(text, insights):
+    # Ensure insights is a list of lowercase strings
+    if isinstance(insights, str):
+        insights = [ins.strip().lower() for ins in insights.split(",")]
+    else:
+        insights = [ins.strip().lower() for ins in insights]
+
+    # Split into sentences
     sentences = sent_tokenize(text)
-    relevant_sentences = [s for s in sentences if any(k in s.lower() for k in keywords)]
-    summary = " ".join(relevant_sentences[:max_sentences])
-    return counts, summary
+
+    # Count mentions and collect relevant sentences
+    counts = {ins: 0 for ins in insights}
+    relevant_sentences = []
+
+    for sentence in sentences:
+        sentence_lower = sentence.lower()
+        for ins in insights:
+            if ins in sentence_lower:
+                counts[ins] += sentence_lower.count(ins)
+                relevant_sentences.append(sentence.strip())
+
+    # Concatenate relevant sentences and restrict to ~30 words
+    summary = " ".join(relevant_sentences)
+    words = summary.split()
+    short_summary = " ".join(words[:45]) + ("..." if len(words) > 30 else "")
+
+    return counts, short_summary
+
 
 strong_counts, strong_summary = analyze_book(book_texts[strong_reco[0]], insights)
 
