@@ -1,0 +1,6 @@
+sentence-transformers
+numpy
+PyPDF2
+rich
+nltk
+
